@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatPar</title>
+</head>
+
+<body>
+
+    <main>
+        <input type="text" id="messageInput">
+        <button onclick="sendMessage()">Send</button>
+
+        <ul id="messages"></ul>
+
+        <script>
+            const socket = new WebSocket('ws:localhost:3000')
+            
+            socket.onopen = () => {
+                console.log("Conexão aberta")
+            }
+
+            socket.onerror = (error) => {
+                console.log("Errouuuu!!")
+            }
+            socket.onmessage = (event) => {
+                const message = event.data;
+                if (typeof message === 'string') {
+
+                    displayMessageFromServer(message);
+
+                } else if (message instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        displayMessageFromServer(reader.result);
+                    };
+                    reader.readAsText(message);
+                }
+            };
+
+            function sendMessage() {
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                if (message !== '') {
+                    socket.send(message);
+                    displayMessageFromYou(message)
+                    input.value = '';
+                }
+            }
+
+            function displayMessageFromYou(message) {
+                const messagesList = document.getElementById('messages');
+                const li = document.createElement('li');
+                li.textContent = `[EU] ${message}`;
+                messagesList.appendChild(li);
+            }
+
+            function displayMessageFromServer(message) {
+                const messagesList = document.getElementById('messages');
+                const li = document.createElement('li');
+                li.textContent = `[SERVIDOR] ${message}`;
+                messagesList.appendChild(li);
+            }
+
+
+        </script>
+
+
+    </main>
+</body>
+
+</html>
